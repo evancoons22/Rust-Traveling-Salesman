@@ -4,37 +4,44 @@ extern crate travelling_salesman;
 #[macro_use] extern crate rocket;
 
 use rocket_contrib::json::Json;
-use std::collections::HashMap;
+// use std::collections::HashMap;
+use rocket::http::Method;
+use rocket_cors::{AllowedOrigins, CorsOptions};
+// use travelling_salesman::Tour;
 
 
-#[post("/", format = "json", data = "<map>")]
-fn hello(map: Json<HashMap<i32, (f64, f64)>>) -> String { 
+#[post("/", format = "json", data = "<points>")]
+fn tsp(points: Json<Vec<f64>>) -> Json<Vec<usize>> { 
     
     // let coords: Vec<(f64, f64)> = (*map.values().cloned().collect::<Vec<(f64, f64)>>()).to_vec();
-  
-    let tour = travelling_salesman::simulated_annealing::solve(
-        &(*map.values().cloned().collect::<Vec<(f64, f64)>>()).to_vec(),
-        time::Duration::seconds(5),
-      );
+    let newpoints = points.into_inner();
+    let mut coords = Vec::new();
+    let len = newpoints.len() / 2;
 
-    for (key, value) in &*map {
-        println!("{}: {:?}", key, value);
+    for i in 0..len { 
+      coords.push((newpoints[i * 2], newpoints[i * 2 + 1]));
     }
-    
-    format!("Tour distance: {}, route: {:?}", tour.distance, tour.route)
+
+
+   let tour = travelling_salesman::hill_climbing::solve(&coords[..], time::Duration::seconds(10));
+   let response = tour.route;
+   println!("{:?}", response);
+  
+
+    // println!("Tour distance: {}, route: {:?}", tour.distance, tour.route);
+    // format!("Tour distance: {}, route: {:?}", tour.distance, tour.route)
+    Json(response)
 }
 
-// #[get("/<base64>")]
-// fn stippling(base64: String) -> String{ 
-//     format!("The base 64 string was accepted {}", base64.len())
-// }
-
-
-// struct Point { 
-//     x: f64, 
-//     y: f64
-// }
-
 fn main() {
-  rocket::ignite().mount("/", routes![stippling]).launch();
+  let cors = CorsOptions::default()
+      .allowed_origins(AllowedOrigins::all())
+      .allowed_methods(
+          vec![Method::Get, Method::Post]
+              .into_iter()
+              .map(From::from)
+              .collect(),
+      )
+      .allow_credentials(true);
+  rocket::ignite().mount("/tsp", routes![tsp]).attach(cors.to_cors().unwrap()).launch();
 }
