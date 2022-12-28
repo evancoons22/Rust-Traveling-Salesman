@@ -4,16 +4,13 @@ extern crate travelling_salesman;
 #[macro_use] extern crate rocket;
 
 use rocket_contrib::json::Json;
-// use std::collections::HashMap;
 use rocket::http::Method;
 use rocket_cors::{AllowedOrigins, CorsOptions};
-// use travelling_salesman::Tour;
 
 
 #[post("/", format = "json", data = "<points>")]
 fn tsp(points: Json<Vec<f64>>) -> Json<Vec<usize>> { 
     
-    // let coords: Vec<(f64, f64)> = (*map.values().cloned().collect::<Vec<(f64, f64)>>()).to_vec();
     let newpoints = points.into_inner();
     let mut coords = Vec::new();
     let len = newpoints.len() / 2;
@@ -27,9 +24,6 @@ fn tsp(points: Json<Vec<f64>>) -> Json<Vec<usize>> {
    let response = tour.route;
    println!("{:?}", response);
   
-
-    // println!("Tour distance: {}, route: {:?}", tour.distance, tour.route);
-    // format!("Tour distance: {}, route: {:?}", tour.distance, tour.route)
     Json(response)
 }
 
