@@ -20,7 +20,7 @@ fn tsp(points: Json<Vec<f64>>) -> Json<Vec<usize>> {
     }
 
 
-   let tour = travelling_salesman::hill_climbing::solve(&coords[..], time::Duration::seconds(10));
+   let tour = travelling_salesman::hill_climbing::solve(&coords[..], time::Duration::seconds(4));
    let response = tour.route;
    println!("{:?}", response);
   
